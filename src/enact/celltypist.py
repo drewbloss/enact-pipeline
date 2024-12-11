@@ -52,12 +52,14 @@ class CellTypistPipeline(ENACT):
         # download celltypist model and predict cell type
         if ".pkl" not in self.cell_typist_model:
             self.cell_typist_model = self.cell_typist_model + ".pkl"
-        models.download_models(model=self.cell_typist_model)
+            
+        if not os.path.exists(self.cell_typist_model):
+            models.download_models(model=self.cell_typist_model)
         predictions = celltypist.annotate(adata, model=self.cell_typist_model)
         adata = predictions.to_adata(
             insert_labels=True, insert_conf=True, insert_prob=True
         )
-
+        
         adata.obs.rename(columns={"predicted_labels": "cell_type"}, inplace=True)
         adata.obs[adata.obsm["spatial"].columns] = adata.obsm["spatial"]
         adata.obs[adata.obsm["stats"].columns] = adata.obsm["stats"]
